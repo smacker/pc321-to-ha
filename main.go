@@ -209,12 +209,11 @@ func publishConfigMetric(client MQTT.Client, metric, payload string) {
 }
 
 func publishConfig(client MQTT.Client) {
-	// object_id also needs a suffix but I already published it without one and don't want to loose historical data, oops
-	energyPayload := `"device_class": "energy","enabled_by_default": true,"object_id": "pc321_energy","state_class": "total_increasing","state_topic": "smacker/pc321","unique_id": "pc321_energy%s","unit_of_measurement": "kWh","value_template": "{{ value_json.energy%s }}"`
-	publishConfigMetric(client, "energy", fmt.Sprintf(energyPayload, "", ""))
-	publishConfigMetric(client, "energy_l1", fmt.Sprintf(energyPayload, "_l1", "_l1"))
-	publishConfigMetric(client, "energy_l1", fmt.Sprintf(energyPayload, "_l2", "_l2"))
-	publishConfigMetric(client, "energy_l1", fmt.Sprintf(energyPayload, "_l3", "_l3"))
+	energyPayload := `"device_class": "energy","enabled_by_default": true,"object_id": "pc321_energy%s","state_class": "total_increasing","state_topic": "smacker/pc321","unique_id": "pc321_energy%s","unit_of_measurement": "kWh","value_template": "{{ value_json.energy%s }}"`
+	publishConfigMetric(client, "energy", fmt.Sprintf(energyPayload, "", "", ""))
+	publishConfigMetric(client, "energy_l1", fmt.Sprintf(energyPayload, "_l1", "_l1", "_l1"))
+	publishConfigMetric(client, "energy_l2", fmt.Sprintf(energyPayload, "_l2", "_l2", "_l2"))
+	publishConfigMetric(client, "energy_l3", fmt.Sprintf(energyPayload, "_l3", "_l3", "_l3"))
 
 	powerPayload := `"device_class": "power","enabled_by_default": true,"entity_category": "diagnostic","object_id": "pc321_power%s","state_class": "measurement","state_topic": "smacker/pc321","unique_id": "pc321_power%s","unit_of_measurement": "W","value_template": "{{ value_json.power%s }}"`
 	publishConfigMetric(client, "power", fmt.Sprintf(powerPayload, "", "", ""))
