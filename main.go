@@ -111,7 +111,11 @@ func main() {
 		slog.Debug("Received message", "topic", incoming.topic, "message", string(incoming.message))
 
 		var data Pc321State
-		json.Unmarshal(incoming.message, &data)
+		err := json.Unmarshal(incoming.message, &data)
+		if err != nil {
+			slog.Error("Failed to unmarshal message", "error", err)
+			continue
+		}
 
 		payload := make(map[string]RoundedFloat)
 		// Range: 0-5000,              Unit: 0.1V
