@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
@@ -85,8 +86,14 @@ func main() {
 	})
 
 	client := MQTT.NewClient(opts)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+	token := client.Connect()
+	if !token.WaitTimeout(5 * time.Second) {
+		slog.Error("Connect timeout")
+		os.Exit(1)
+	}
+	if token.Error() != nil {
+		slog.Error("Connect failed", "err", token.Error())
+		os.Exit(1)
 	}
 
 	c := make(chan os.Signal, 1)
@@ -101,7 +108,12 @@ func main() {
 
 	publishConfig(client)
 
-	if token := client.Subscribe(*topic, 0, nil); token.Wait() && token.Error() != nil {
+	token = client.Subscribe(*topic, 0, nil)
+	if !token.WaitTimeout(5 * time.Second) {
+		slog.Error("Subscribe timeout")
+		os.Exit(1)
+	}
+	if token.Error() != nil {
 		slog.Error("Subscription failed", "err", token.Error())
 		os.Exit(1)
 	}
@@ -198,7 +210,12 @@ func main() {
 
 		slog.Info("Publishing message", "topic", "pc321", "message", string(jsonPayload))
 		token := client.Publish("smacker/pc321", 0, false, string(jsonPayload))
-		token.Wait()
+		if !token.WaitTimeout(5 * time.Second) {
+			slog.Error("Publish timeout")
+		}
+		if token.Error() != nil {
+			slog.Error("Failed to publish message", "error", token.Error())
+		}
 	}
 
 }
@@ -209,7 +226,12 @@ func publishConfigMetric(client MQTT.Client, metric, payload string) {
 	token := client.Publish(
 		fmt.Sprintf("homeassistant/sensor/pc321/%s/config", metric), 0, true,
 		fmt.Sprintf(`{"device": %s, %s}`, deviceJson, payload))
-	token.Wait()
+	if !token.WaitTimeout(5 * time.Second) {
+		slog.Error("Publish timeout")
+	}
+	if token.Error() != nil {
+		slog.Error("Failed to publish message", "error", token.Error())
+	}
 }
 
 func publishConfig(client MQTT.Client) {
