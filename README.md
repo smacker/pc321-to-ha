@@ -14,3 +14,10 @@ services:
 ```
 
 Replace `<broker-user>`, `<broker-ip>` and `<broker-password>` with the actual values of your MQTT message broker that is connected to PC321-W and Home Assistant.
+
+## Docker build
+
+```bash
+docker build --platform linux/amd64 . -t smacker/pc321-to-ha
+docker push smacker/pc321-to-ha
+```
